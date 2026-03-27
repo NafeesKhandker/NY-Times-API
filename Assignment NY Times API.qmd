@@ -1,0 +1,88 @@
+---
+title: "Assignment NY Times API"
+author: "Khandker Qaiduzzaman"
+format: html
+editor: visual
+---
+
+# Objective
+
+The objective of this assignment is to use a New York Times API to retrieve JSON data, import it into R, and transform it into a tidy data frame for analysis. The goal is to explore patterns in article engagement by examining whether articles with images appear more frequently in the New York Times Most Popular list compared to those without images.
+
+# Approach
+
+For this assignment, I used the New York Times Most Popular API, specifically the endpoint that returns the most viewed articles over the past 7 days.
+
+The research question for this analysis is:
+
+-   **Do articles with images receive more engagement than those without in the New York Times Most Popular list?**
+
+The dataset should be obtained dynamically through an API request and include information about the most viewed articles published by The New York Times. To answer the research question, the media field will be used to determine whether an article contains images. A new variable will be created:
+
+**Has Image –** A binary variable indicating whether the article includes at least one image (Yes/No)
+
+The data retrieved from the API is in JSON format, which represents hierarchical and nested data commonly used in web services. This requires parsing and transformation before it can be analyzed in R.
+
+### Data Analysis Steps
+
+The analysis will follow these steps:
+
+1.  **API Authentication:** The API key will be securely accessed using an environment variable (Sys.getenv) to avoid hardcoding sensitive information.
+2.  **Data Retrieval:** A request will be made to the NYT Most Popular API to retrieve the most viewed articles over a 7-day period.
+3.  **JSON Parsing:** The JSON response will be parsed into an R object using the jsonlite package.
+4.  **Data Transformation:** The relevant fields (title, section, published date, byline, and media) will be extracted and converted into a tidy data frame.
+5.  **Feature Engineering:** A new variable (Has Image) will be created by checking whether the nested media field contains data.
+6.  **Data Cleaning:** Nested structures will be simplified, missing media values will be treated as “No Image”, and dates will be converted into proper date format
+7.  **Exploratory Data Analysis:** Count and compare the number of articles with and without images, analyze distribution across sections, and visualize differences using bar charts
+8.  **Interpretation:** The results will be used to evaluate whether the presence of images is associated with higher representation in the Most Popular list, serving as a proxy for engagement.
+
+### Anticipated Challenges
+
+One of the main challenges in this assignment is working with nested JSON data returned by the API. The media field, which contains image information, is stored as a list of nested objects and requires additional processing to determine whether an article includes images.
+
+Another challenge is that the API does not provide direct engagement metrics such as view counts. Instead, inclusion in the “Most Popular” list must be used as a proxy for engagement, which limits the ability to draw causal conclusions.
+
+Additionally, handling missing or empty fields and converting them into meaningful variables (such as the binary image indicator) requires careful data cleaning and transformation.
+
+### Implementation of Data Import
+
+The following code demonstrates how the JSON data is retrieved from the New York Times API and prepared for analysis in R.
+
+```{r}
+library(httr)
+library(jsonlite)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+The API request retrieves the most viewed articles over the past 7 days. The API key is stored securely as an environment variable.
+
+```{r}
+# Retrieve API key
+api_key <- Sys.getenv("NYT_API_KEY")
+
+# API request
+url <- paste0(
+  "https://api.nytimes.com/svc/mostpopular/v2/viewed/7.json?api-key=",
+  api_key
+)
+
+response <- GET(url)
+
+# Convert response to text
+data_json <- content(response, as = "text", encoding = "UTF-8")
+
+# Parse JSON
+data <- fromJSON(data_json, flatten = TRUE)
+
+# Extract results
+articles <- data$results
+
+# Convert to data frame
+df <- articles %>%
+  select(title, section, published_date, byline, media)
+
+df |>
+  head()
+```
