@@ -46,14 +46,14 @@ Additionally, handling missing or empty fields and converting them into meaningf
 
 ### Implementation of Data Import
 
-The following code demonstrates how the JSON data is retrieved from the New York Times API and prepared for analysis in R.
+The following code demonstrates how the JSON data is retrieved from the New York Times API and prepared for analysis in R. First, all the required libraries are imported.
 
 ```{r}
 library(httr)
 library(jsonlite)
 library(dplyr)
-library(tidyr)
 library(ggplot2)
+library(gt)
 ```
 
 The API request retrieves the most viewed articles over the past 7 days. The API key is stored securely as an environment variable.
@@ -83,6 +83,64 @@ articles <- data$results
 df <- articles %>%
   select(title, section, published_date, byline, media)
 
-df |>
-  head()
+df |> 
+  head(n = 3) |> 
+  gt()
 ```
+
+A new dataframe is created that has an extra column Has_Image. A check looks for the length of the values within the 'media' column. If there is no image, the length should be 0, therefore the Has_Image value will be 'No'. Otherwise, a non-zero length means there is an image.
+
+```{r}
+df_clean <- df %>%
+  mutate(
+    Has_Image = ifelse(lengths(media) > 0, "Yes", "No")
+  )
+df_clean  |> 
+  head(n = 3) |> 
+  gt()
+```
+
+Finally, a bar chart shows that 18 out of 20 most viewed articles has image. Only 2 article out of 20 has no image, yet being most viewed.
+
+```{r}
+# Create summary data for annotation
+summary_counts <- df_clean %>%
+  count(Has_Image)
+
+ggplot(df_clean, aes(x = Has_Image, fill = Has_Image)) +
+  geom_bar(width = 0.6, show.legend = FALSE) +
+  
+  # Add count labels on top of bars
+  geom_text(
+    data = summary_counts,
+    aes(x = Has_Image, y = n, label = n),
+    vjust = -.1,
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  
+  # Custom colors
+  scale_fill_manual(values = c("Yes" = "#2C7FB8", "No" = "#F03B20")) +
+  
+  labs(
+    title = "Do Articles with Images Dominate the Most Popular List?",
+    subtitle = "Comparison of NYT Most Viewed Articles (7-Day Period)",
+    x = "Article Contains Image",
+    y = "Number of Articles",
+    caption = "Source: New York Times Most Popular API"
+  ) 
+```
+
+# Conclusion
+
+The analysis shows that 18 out of 20 articles (90%) in the New York Times Most Popular list include images, while only 2 articles (10%) do not. This strong imbalance suggests that articles with images are far more prevalent among the most viewed content.
+
+While this does not prove causation, it indicates that the presence of images is likely associated with higher engagement or visibility. Images may enhance reader interest, improve click-through rates, and make articles more appealing in digital formats.
+
+However, it is important to note that this dataset only includes already “most popular” articles, meaning it reflects representation rather than direct impact. Other factors—such as topic, headline, or timing—also play significant roles in driving engagement.
+
+Overall, the findings suggest that including images is a common characteristic of highly popular articles, and may be an important factor in capturing audience attention.
+
+# References
+
+1.  OpenAI. (2026, March 28). *ChatGPT conversation with K. M. Qaiduzzaman on New York Times API data analysis in R*. Retrieved March 28, 2026, from <https://chat.openai.com/>
