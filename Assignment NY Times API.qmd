@@ -58,6 +58,19 @@ library(gt)
 
 The API request retrieves the most viewed articles over the past 7 days. The API key is stored securely as an environment variable.
 
+### API Selection (Endpoint and brief description)
+
+-   **API Used:** New York Times Most Popular API
+-   **Endpoint:** `/mostpopular/v2/viewed/7.json`
+-   **Purpose:** Retrieves articles that were most viewed over the past 7 days.
+-   **Description:** This endpoint returns a list of articles with metadata such as `title`, `section`, `published_date`, `byline`, and `media`. It provides a snapshot of the articles currently most popular among readers, which can be used to analyze trends, engagement, and the presence of images in widely read content.
+
+### API Request (Parameters Used)
+
+-   **Request Method:** GET
+-   **Parameters:** - `7.json` – Specifies retrieval of articles viewed over the last 7 days - `api-key` – Authorizes the request using a personal NYT API key stored securely in an environment variable
+-   **Description:** The GET request to the Most Popular API retrieves a JSON response containing the top-viewed articles for the past week. The API key ensures secure access without exposing sensitive information in the code. The response includes nested fields for each article, with metadata such as title, section, published_date, byline, and media, which are later extracted and transformed into a tidy R data frame for analysis.
+
 ```{r}
 # Retrieve API key
 api_key <- Sys.getenv("NYT_API_KEY")
